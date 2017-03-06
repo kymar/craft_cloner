@@ -1,0 +1,14 @@
+{
+	"name": "kymar/cloner",
+	"description": "Allows cloning of sections and entry types",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Kyle Marshall",
+			"homepage": "kylemarshall.me.uk"
+		}
+	],
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}
