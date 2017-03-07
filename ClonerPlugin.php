@@ -26,24 +26,6 @@ namespace Craft;
 class ClonerPlugin extends BasePlugin
 {
     /**
-     * Called after the plugin class is instantiated; do any one-time initialization here such as hooks and events:
-     *
-     * craft()->on('entries.saveEntry', function(Event $event) {
-     *    // ...
-     * });
-     *
-     * or loading any third party Composer packages via:
-     *
-     * require_once __DIR__ . '/vendor/autoload.php';
-     *
-     * @return mixed
-     */
-    public function init()
-    {
-        parent::init();
-    }
-
-    /**
      * Returns the user-facing name.
      *
      * @return mixed
@@ -171,4 +153,41 @@ class ClonerPlugin extends BasePlugin
     public function onAfterUninstall()
     {
     }
+
+	/**
+	 * Called after the plugin class is instantiated; do any one-time initialization here such as hooks and events:
+	 *
+	 * craft()->on('entries.saveEntry', function(Event $event) {
+	 *    // ...
+	 * });
+	 *
+	 * or loading any third party Composer packages via:
+	 *
+	 * require_once __DIR__ . '/vendor/autoload.php';
+	 *
+	 * @return mixed
+	 */
+	public function init()
+	{
+		parent::init();
+		if(craft()->request->isCpRequest() && $this->isCraftRequiredVersion())
+		{
+			$this->includeResources();
+		}
+	}
+
+	public function isCraftRequiredVersion()
+	{
+		return version_compare(craft()->getVersion(), '2.5', '>=');
+	}
+
+	protected function includeResources()
+	{
+		if(!craft()->request->isAjaxRequest() && craft()->userSession->isAdmin())
+		{
+			craft()->templates->includeJsResource('cloner/js/Cloner.js');
+		}
+	}
+
+
 }
