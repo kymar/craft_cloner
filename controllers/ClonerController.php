@@ -41,35 +41,62 @@ class ClonerController extends BaseController
 	 */
 	public function actionClone()
 	{
-		$sectionId = craft()->request->getPost('sectionId');
-		$oldEntryId = craft()->request->getPost('oldEntryId');
-		$newEntryName = craft()->request->getPost('newEntryName');
+//		$sectionId = craft()->request->getPost('sectionId');
+//		$oldEntryId = craft()->request->getPost('oldEntryId');
+//		$newEntryName = craft()->request->getPost('newEntryName');
+//		$newEntryHandle = craft()->request->getPost('newEntryHandle');
+
+		$sectionId = 2;
+		$oldEntryId = 2;
+		$newEntryName = 'News 2';
+		$newEntryHandle = 'news2';
 
 		// Fill new entry with old Entry Type we are cloning from
 		$oldEntryType = craft()->sections->getEntryTypeById($oldEntryId);
 
 		$entryType = new EntryTypeModel();
-
 		// Set the simple stuff
 		$entryType->sectionId = $oldEntryType->sectionId;
 		$entryType->name = $newEntryName;
-		$entryType->handle = ElementHelper::createSlug($newEntryName);
+		$entryType->handle = $newEntryHandle;
 		$entryType->hasTitleField = $oldEntryType->hasTitleField;
 		$entryType->titleLabel = $oldEntryType->titleLabel;
 		$entryType->titleFormat = $oldEntryType->titleFormat;
 
+		$oldFieldLayout = $oldEntryType->getFieldLayout();
+		$fields = [];
+		$required = [];
+
+		foreach ($oldFieldLayout->getTabs() as $tab)
+		{
+			$fields[$tab->name] = [];
+			foreach ($tab->getFields() as $field)
+			{
+				$fields[$tab->name][] = $field->id;
+				if ($field->required)
+				{
+					$required[] = $field->id;
+				}
+			}
+		}
+
 		// Set the field layout
-//		$fieldLayout = craft()->fields->assembleLayoutFromPost();
-//		$fieldLayout->type = ElementType::Entry;
-//		$entryType->setFieldLayout($fieldLayout);
+		$fieldLayout = craft()->fields->assembleLayout($fields, $required);
+		$fieldLayout->type = ElementType::Entry;
+		$entryType->setFieldLayout($fieldLayout);
+
+		Craft::dd($entryType->id);
 		// Save it
-//		if (craft()->sections->saveEntryType($entryType))
-//		{
-//			craft()->userSession->setNotice(Craft::t('Entry type saved.'));
-//		} else
-//		{
-//			craft()->userSession->setError(Craft::t('Couldn’t save entry type.'));
-//		}
+		if (craft()->sections->saveEntryType($entryType))
+		{
+			$this->returnJson(['success' => Craft::t('Entry type saved.')]);
+		}
+		else
+		{
+			$this->returnErrorJson(Craft::t('Couldn’t save entry type.'));
+		}
+
+		Craft::dd('done');
 	}
 
 }
