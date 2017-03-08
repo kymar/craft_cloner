@@ -45,39 +45,34 @@ $(function()
 		entryTypes.find('tr').each(function ()
 		{
 			var $row = $(this),
-				matchSection = Craft.path.match(/^settings\/sections\/([0-9]+)\/entrytypes$/),
 				rowId = $row.data('id');
 
-			if(matchSection)
+			var cloneButton = $('<td class="thin"><a class="add icon" title="Clone" role="button"></a></td>').on('click', function (e)
 			{
-				var sectionId = matchSection[1];
+				e.preventDefault();
 
-				var cloneButton = $('<td class="thin"><a class="add icon" title="Clone" role="button"></a></td>').on('click', function (e)
+				var newEntryName;
+				if(newEntryName = prompt('New Entry Type Name'))
 				{
-					e.preventDefault();
+					var data = {
+						oldEntryId: rowId,
+						newEntryName: newEntryName,
+						newEntryHandle: generateHandle(newEntryName)
+					};
 
-					var newEntryName;
-					if(newEntryName = prompt('New Entry Type Name'))
+					Craft.postActionRequest('cloner/clone', data, function (response)
 					{
-						var data = {
-							sectionId: sectionId,
-							oldEntryId: rowId,
-							newEntryName: newEntryName,
-							newEntryHandle: generateHandle(newEntryName)
-						};
-
-						Craft.postActionRequest('cloner/clone', data, function (response)
+						if(typeof response.success != 'undefined')
 						{
+							window.location.reload();
+						}
+					});
+				}
 
-						});
-					}
+				return false;
+			});
 
-					return false;
-				});
-
-				$row.find('[data-title="Handle"]').after(cloneButton);
-			}
-
+			$row.find('[data-title="Handle"]').after(cloneButton);
 		})
 	}
 });

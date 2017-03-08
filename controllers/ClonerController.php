@@ -41,15 +41,9 @@ class ClonerController extends BaseController
 	 */
 	public function actionClone()
 	{
-//		$sectionId = craft()->request->getPost('sectionId');
-//		$oldEntryId = craft()->request->getPost('oldEntryId');
-//		$newEntryName = craft()->request->getPost('newEntryName');
-//		$newEntryHandle = craft()->request->getPost('newEntryHandle');
-
-		$sectionId = 2;
-		$oldEntryId = 2;
-		$newEntryName = 'News 2';
-		$newEntryHandle = 'news2';
+		$oldEntryId = craft()->request->getPost('oldEntryId');
+		$newEntryName = craft()->request->getPost('newEntryName');
+		$newEntryHandle = craft()->request->getPost('newEntryHandle');
 
 		// Fill new entry with old Entry Type we are cloning from
 		$oldEntryType = craft()->sections->getEntryTypeById($oldEntryId);
@@ -72,10 +66,10 @@ class ClonerController extends BaseController
 			$fields[$tab->name] = [];
 			foreach ($tab->getFields() as $field)
 			{
-				$fields[$tab->name][] = $field->id;
+				$fields[$tab->name][] = $field->fieldId;
 				if ($field->required)
 				{
-					$required[] = $field->id;
+					$required[] = $field->fieldId;
 				}
 			}
 		}
@@ -85,18 +79,17 @@ class ClonerController extends BaseController
 		$fieldLayout->type = ElementType::Entry;
 		$entryType->setFieldLayout($fieldLayout);
 
-		Craft::dd($entryType->id);
 		// Save it
 		if (craft()->sections->saveEntryType($entryType))
 		{
-			$this->returnJson(['success' => Craft::t('Entry type saved.')]);
+			craft()->userSession->setNotice(Craft::t('Entry type cloned successfully.'));
+			$this->returnJson(['success' => true]);
 		}
 		else
 		{
-			$this->returnErrorJson(Craft::t('Couldn’t save entry type.'));
+			craft()->userSession->setError(Craft::t('Couldn’t clone entry type.'));
+			$this->returnJson(['success' => false]);
 		}
-
-		Craft::dd('done');
 	}
 
 }
