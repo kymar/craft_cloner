@@ -73,6 +73,45 @@ $(function()
 			});
 
 			$row.find('[data-title="Handle"]').after(cloneButton);
-		})
+		});
 	}
+
+	var sections = $('#sections');
+
+	if(sections.length)
+	{
+		sections.find('tr').each(function ()
+		{
+			var $row = $(this),
+				rowId = $row.data('id');
+
+			var cloneButton = $('<td class="thin"><a class="add icon" title="Clone" role="button"></a></td>').on('click', function (e)
+			{
+				e.preventDefault();
+
+				var newSectionName;
+				if(newSectionName = prompt('New Section Name'))
+				{
+					var data = {
+						oldSectionId: rowId,
+						newSectionName: newSectionName,
+						newSectionHandle: generateHandle(newSectionName)
+					};
+
+					Craft.postActionRequest('cloner/cloneSection', data, function (response)
+					{
+						if(typeof response.success != 'undefined')
+						{
+							window.location.reload();
+						}
+					});
+				}
+
+				return false;
+			});
+
+			$row.find('[data-title="Entry Types"]').after(cloneButton);
+		});
+	}
+
 });

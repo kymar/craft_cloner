@@ -92,4 +92,52 @@ class ClonerController extends BaseController
 		}
 	}
 
+	public function actionCloneSection()
+	{
+//		$oldSectionId = craft()->request->getPost('oldSectionId');
+//		$newSectionName = craft()->request->getPost('newSectionName');
+//		$newSectionHandle = craft()->request->getPost('newSectionHandle');
+
+		$oldSectionId = 2;
+		$newSectionName = 'News 2';
+		$newSectionHandle = 'news2';
+
+		// Fill new Section with old Section we are cloning from
+		$oldSection = craft()->sections->getSectionById($oldSectionId);
+
+		$section = new SectionModel();
+
+		// Shared attributes
+		$section->id               = null;
+		$section->name             = $newSectionName;
+		$section->handle           = $newSectionHandle;
+		$section->type             = $oldSection->type;
+		$section->enableVersioning = $oldSection->enableVersioning;
+
+		// Type-specific attributes
+		$section->hasUrls    = $oldSection->hasUrls;
+		$section->template   = $oldSection->template;
+		$section->maxLevels  = $oldSection->maxLevels;
+
+		$locales = $oldSection->getLocales();
+		foreach ($locales as $locale)
+		{
+			$locale->urlFormat = $newSectionHandle . '/{slug}';
+		}
+
+		$section->setLocales($locales);
+
+		// Save it
+		if (craft()->sections->saveSection($section))
+		{
+			craft()->userSession->setNotice(Craft::t('Section cloned successfully.'));
+			$this->returnJson(['success' => true]);
+		}
+		else
+		{
+			craft()->userSession->setError(Craft::t('Couldn’t clone section.'));
+			$this->returnJson(['success' => false]);
+		}
+	}
+
 }
