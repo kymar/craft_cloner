@@ -4,19 +4,6 @@
  *
  * Cloner Controller
  *
- * --snip--
- * Generally speaking, controllers are the middlemen between the front end of the CP/website and your plugin’s
- * services. They contain action methods which handle individual tasks.
- *
- * A common pattern used throughout Craft involves a controller action gathering post data, saving it on a model,
- * passing the model off to a service, and then responding to the request appropriately depending on the service
- * method’s response.
- *
- * Action methods begin with the prefix “action”, followed by a description of what the method does (for example,
- * actionSaveIngredient()).
- *
- * https://craftcms.com/docs/plugins/controllers
- * --snip--
  *
  * @author    Kyle Marshall
  * @copyright Copyright (c) 2017 Kyle Marshall
@@ -126,16 +113,10 @@ class ClonerController extends BaseController
 		// Save it
 		if (craft()->sections->saveSection($section))
 		{
-			foreach($oldSection->getEntryTypes() as $oldEntryType)
+			if ($section->type == SectionType::Single)
 			{
-				$entryType = new EntryTypeModel();
-				// Set the simple stuff
-				$entryType->sectionId = $section->id;
-				$entryType->name = $oldEntryType->name;
-				$entryType->handle = $oldEntryType->handle;
-				$entryType->hasTitleField = $oldEntryType->hasTitleField;
-				$entryType->titleLabel = $oldEntryType->titleLabel;
-				$entryType->titleFormat = $oldEntryType->titleFormat;
+				$newEntryType = $section->getEntryTypes()[0];
+				$oldEntryType = $oldSection->getEntryTypes()[0];
 
 				$oldFieldLayout = $oldEntryType->getFieldLayout();
 				$fields = [];
@@ -154,15 +135,56 @@ class ClonerController extends BaseController
 					}
 				}
 
-				// Set the field layout
 				$fieldLayout = craft()->fields->assembleLayout($fields, $required);
 				$fieldLayout->type = ElementType::Entry;
-				$entryType->setFieldLayout($fieldLayout);
+				$newEntryType->setFieldLayout($fieldLayout);
 
-				if(!craft()->sections->saveEntryType($entryType))
+				if (!craft()->sections->saveEntryType($newEntryType))
 				{
 					craft()->userSession->setError(Craft::t('Couldn’t clone section.'));
 					$this->returnJson(['success' => false]);
+				}
+			}
+			else
+			{
+				foreach ($oldSection->getEntryTypes() as $oldEntryType)
+				{
+					$entryType = new EntryTypeModel();
+					// Set the simple stuff
+					$entryType->sectionId = $section->id;
+					$entryType->name = $oldEntryType->name;
+					$entryType->handle = $oldEntryType->handle;
+					$entryType->hasTitleField = $oldEntryType->hasTitleField;
+					$entryType->titleLabel = $oldEntryType->titleLabel;
+					$entryType->titleFormat = $oldEntryType->titleFormat;
+
+					$oldFieldLayout = $oldEntryType->getFieldLayout();
+					$fields = [];
+					$required = [];
+
+					foreach ($oldFieldLayout->getTabs() as $tab)
+					{
+						$fields[$tab->name] = [];
+						foreach ($tab->getFields() as $field)
+						{
+							$fields[$tab->name][] = $field->fieldId;
+							if ($field->required)
+							{
+								$required[] = $field->fieldId;
+							}
+						}
+					}
+
+					// Set the field layout
+					$fieldLayout = craft()->fields->assembleLayout($fields, $required);
+					$fieldLayout->type = ElementType::Entry;
+					$entryType->setFieldLayout($fieldLayout);
+
+					if (!craft()->sections->saveEntryType($entryType))
+					{
+						craft()->userSession->setError(Craft::t('Couldn’t clone section.'));
+						$this->returnJson(['success' => false]);
+					}
 				}
 			}
 
