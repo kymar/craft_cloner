@@ -94,13 +94,9 @@ class ClonerController extends BaseController
 
 	public function actionCloneSection()
 	{
-//		$oldSectionId = craft()->request->getPost('oldSectionId');
-//		$newSectionName = craft()->request->getPost('newSectionName');
-//		$newSectionHandle = craft()->request->getPost('newSectionHandle');
-
-		$oldSectionId = 2;
-		$newSectionName = 'News 2';
-		$newSectionHandle = 'news2';
+		$oldSectionId = craft()->request->getPost('oldSectionId');
+		$newSectionName = craft()->request->getPost('newSectionName');
+		$newSectionHandle = craft()->request->getPost('newSectionHandle');
 
 		// Fill new Section with old Section we are cloning from
 		$oldSection = craft()->sections->getSectionById($oldSectionId);
@@ -130,6 +126,46 @@ class ClonerController extends BaseController
 		// Save it
 		if (craft()->sections->saveSection($section))
 		{
+			foreach($oldSection->getEntryTypes() as $oldEntryType)
+			{
+				$entryType = new EntryTypeModel();
+				// Set the simple stuff
+				$entryType->sectionId = $section->id;
+				$entryType->name = $oldEntryType->name;
+				$entryType->handle = $oldEntryType->handle;
+				$entryType->hasTitleField = $oldEntryType->hasTitleField;
+				$entryType->titleLabel = $oldEntryType->titleLabel;
+				$entryType->titleFormat = $oldEntryType->titleFormat;
+
+				$oldFieldLayout = $oldEntryType->getFieldLayout();
+				$fields = [];
+				$required = [];
+
+				foreach ($oldFieldLayout->getTabs() as $tab)
+				{
+					$fields[$tab->name] = [];
+					foreach ($tab->getFields() as $field)
+					{
+						$fields[$tab->name][] = $field->fieldId;
+						if ($field->required)
+						{
+							$required[] = $field->fieldId;
+						}
+					}
+				}
+
+				// Set the field layout
+				$fieldLayout = craft()->fields->assembleLayout($fields, $required);
+				$fieldLayout->type = ElementType::Entry;
+				$entryType->setFieldLayout($fieldLayout);
+
+				if(!craft()->sections->saveEntryType($entryType))
+				{
+					craft()->userSession->setError(Craft::t('Couldn’t clone section.'));
+					$this->returnJson(['success' => false]);
+				}
+			}
+
 			craft()->userSession->setNotice(Craft::t('Section cloned successfully.'));
 			$this->returnJson(['success' => true]);
 		}
