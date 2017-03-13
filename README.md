@@ -30,4 +30,4 @@ Or
 * Click on a sections `entry types` to see a list of entry types for that section
 * Press the `+` to clone this entry type and its field layout
 
-Brought to you by [Kyle Marshall](kylemarshall.me.uk)
+Brought to you by [Kyle Marshall](https://twitter.com/KyleM146)
