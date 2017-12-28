@@ -138,6 +138,7 @@ class ClonerPlugin extends BasePlugin
 	{
 		if(!craft()->request->isAjaxRequest() && craft()->userSession->isAdmin())
 		{
+			craft()->templates->includeTranslations('Handle', 'Entry Types');
 			craft()->templates->includeJsResource('cloner/js/Cloner.js');
 		}
 	}

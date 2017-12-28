@@ -1,5 +1,10 @@
 $(function()
 {
+	var strings = {
+        handle: Craft.translations['Handle'] || 'Handle',
+        types: Craft.translations['Entry Types'] || 'Entry Types'
+    };
+
 	//	https://github.com/pixelandtonic/Craft-Release/blob/46ec3f0496b13c34c91f488ff5384e210b726ea8/app/resources/js/craft/HandleGenerator.js
 	function generateHandle(sourceVal)
 	{
@@ -72,7 +77,7 @@ $(function()
 				return false;
 			});
 
-			$row.find('[data-title="Handle"]').after(cloneButton);
+			$row.find('[data-title="'+ strings.handle +'"]').after(cloneButton);
 		});
 	}
 
@@ -110,7 +115,7 @@ $(function()
 				return false;
 			});
 
-			$row.find('[data-title="Entry Types"]').after(cloneButton);
+			$row.find('[data-title="'+ strings.types +'"]').after(cloneButton);
 		});
 	}
 
